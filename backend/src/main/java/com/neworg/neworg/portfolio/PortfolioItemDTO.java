@@ -6,7 +6,8 @@ public record PortfolioItemDTO(
     String ticker,
     String name,
     BigDecimal quantity,
-    BigDecimal averagePrice
+    BigDecimal averagePrice,
+    BigDecimal totalCost
 ) {
     
 }
