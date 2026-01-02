@@ -1,6 +1,7 @@
 package com.neworg.neworg.config;
 
 import com.neworg.neworg.user.UserRepository;
+import com.neworg.neworg.repository.RevokedTokenRepository;
 import com.neworg.neworg.service.TokenService;
 import com.neworg.neworg.user.User;
 import jakarta.servlet.FilterChain;
@@ -20,10 +21,12 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
+    private final RevokedTokenRepository revokedTokenRepository;
 
-    public SecurityFilter(TokenService tokenService, UserRepository userRepository) {
+    public SecurityFilter(TokenService tokenService, UserRepository userRepository, RevokedTokenRepository revokedTokenRepository) {
         this.tokenService = tokenService;
         this.userRepository = userRepository;
+        this.revokedTokenRepository = revokedTokenRepository;
     }
 
     @Override
@@ -31,6 +34,10 @@ public class SecurityFilter extends OncePerRequestFilter {
         var token = this.recoverToken(request);
         
         if(token != null){
+            if(revokedTokenRepository.existsByToken(token)) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return;
+            }
             var login = tokenService.validateToken(token);
 
             if(login != null && !login.isEmpty()){
